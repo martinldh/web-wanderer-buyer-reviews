@@ -21,6 +21,7 @@ Then proceed if the user has already supplied a valid product URL/ID. Do not ask
 
 - Accept `https://shop.tiktok.com/<market>/pdp/<id>`, `https://www.tiktok.com/view/product/<id>`, or a numeric product ID.
 - Extract the numeric product ID; preserve the market from the URL when present, otherwise use `MX`.
+- Before calling the Actor, normalize every accepted input to `https://www.tiktok.com/shop/<market>/pdp/<id>`. Do not pass a bare numeric ID to web_wanderer: Actor build `0.2.5` can fail its MX regional routing for numeric IDs even while the PDP visibly has reviews.
 - Reject video URLs (`/video/`, `/@user/video/`, `/t/`) and explain that this Skill cannot fetch video comments.
 - Reject live-room URLs and ordinary shop/category URLs that do not contain a product ID.
 - Never infer a product ID from an unrelated video or creator page.
@@ -32,7 +33,7 @@ Then proceed if the user has already supplied a valid product URL/ID. Do not ask
    ```json
    {
      "region": "MX",
-     "product_ids": ["<id>"],
+     "product_ids": ["https://www.tiktok.com/shop/mx/pdp/<id>"],
      "reviews_limit": 0,
      "reviews_filter": "all",
      "reviews_sort": "most_recent",
@@ -48,6 +49,7 @@ Then proceed if the user has already supplied a valid product URL/ID. Do not ask
 - Require: successful run, non-empty records, requested product ID match, and `review_country` matching the target market when present.
 - Check field coverage for rating, text, SKU, verification, incentive flag, date, and country. Report missing fields instead of filling them in.
 - If the result is empty, wrong-market, or mismatched, stop and report the evidence. Do not claim the product has no reviews.
+- If an empty run used a bare numeric ID, retry once with the canonical regional product URL before applying the empty-result stop gate. Record whether the log says `Could not process product` or `No reviews found`; these are scraper failures/signals, not proof that the PDP has no reviews.
 - Treat `total_reviews`/`rating_result` as the platform aggregate and returned rows as the captured review sample. If they differ, state both.
 - Do not silently rerun an empty or failed Actor; rerun only when the user explicitly requests another attempt or supplies a corrected product URL.
 
