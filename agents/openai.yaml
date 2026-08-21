@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Buyer Review Insights"
+  short_description: "抓取并分析 TikTok Shop 商品卡买家评价"
+  default_prompt: "使用 web_wanderer 抓取指定 MX 商品的全部商品卡买家评价，并按好评、中评、差评总结选品洞察。"
